@@ -8,11 +8,13 @@
  *
  */
 
+// BEGIN MPG
 #if !defined(_WIN32)
 	#include <sys/types.h>
 	#include <sys/socket.h>
 	#include <netdb.h>
 #endif
+// END MPG
 
 #include "EmptyHeader.h"
 

@@ -49,6 +49,9 @@ CSHA1::CSHA1()
 	m_block = (SHA1_WORKSPACE_BLOCK*)m_workspace;
 
 	Reset();
+	
+	((void)m_reserved0); // MPG
+	((void)m_reserved1); // MPG
 }
 
 #ifdef SHA1_WIPE_VARIABLES
