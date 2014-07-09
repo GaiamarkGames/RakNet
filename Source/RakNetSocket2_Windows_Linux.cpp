@@ -8,6 +8,12 @@
  *
  */
 
+#if !defined(_WIN32)
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <netdb.h>
+#endif
+
 #include "EmptyHeader.h"
 
 #ifdef RAKNET_SOCKET_2_INLINE_FUNCTIONS
@@ -75,6 +81,7 @@ void GetMyIP_Windows_Linux_IPV4( SystemAddress addresses[MAXIMUM_NUMBER_OF_INTER
 	int idx=0;
 	char ac[ 80 ];
 	int err = gethostname( ac, sizeof( ac ) );
+	((void)err);
 	RakAssert(err != -1);
 	
 	struct addrinfo hints;
