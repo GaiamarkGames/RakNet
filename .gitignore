@@ -29,3 +29,10 @@ Debug/
 Release/
 .DS_Store
 .Trashes
+RakNet_VS2008.ncb
+*.dll
+*.lib
+*.exp
+*.idb
+*.ilk
+*.pdb

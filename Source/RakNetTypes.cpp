@@ -476,6 +476,7 @@ bool SystemAddress::IsLANAddress(void)
 }
 bool SystemAddress::SetBinaryAddress(const char *str, char portDelineator)
 {
+	char ip[65], name[256];
 	if ( NonNumericHostString( str ) )
 	{
 
@@ -500,26 +501,34 @@ bool SystemAddress::SetBinaryAddress(const char *str, char portDelineator)
 		}
 
 		//const char *ip = ( char* ) SocketLayer::DomainNameToIP( str );
-		char ip[65];
+		// BEGIN MPG
 		ip[0]=0;
-		RakNetSocket2::DomainNameToIP(str, ip);
-		if (ip[0])
+		char *delim = NULL;
+		char sdelim[2];
+		if (portDelineator != 0x00)
 		{
-
-
-
-
-
-			address.addr4.sin_addr.s_addr=inet_addr__(ip);
-
+			sprintf(sdelim, "%c", portDelineator);
+			strcpy(name, str);
+			delim = strstr(name, sdelim);
+			if (delim) *delim = 0x00;
 		}
 		else
+			strcpy(name, str);
+		RakNetSocket2::DomainNameToIP(name, ip);
+		if (!ip[0])
 		{
 			*this = UNASSIGNED_SYSTEM_ADDRESS;
 			return false;
 		}
+		else if (delim)
+		{
+			strcat(ip, sdelim);
+			strcat(ip, delim + 1);
+		}
 	}
 	else
+		strcpy(ip, str);
+
 	{
 		//#ifdef _XBOX
 		//	binaryAddress=UNASSIGNED_SYSTEM_ADDRESS.binaryAddress;
@@ -531,28 +540,27 @@ bool SystemAddress::SetBinaryAddress(const char *str, char portDelineator)
 		// Only write the valid parts, don't change existing if invalid
 		//	binaryAddress=UNASSIGNED_SYSTEM_ADDRESS.binaryAddress;
 		//	port=UNASSIGNED_SYSTEM_ADDRESS.port;
-		for (index=0; str[index] && str[index]!=portDelineator && index<22; index++)
+		for (index=0; ip[index] && ip[index]!=portDelineator && index<22; index++)
 		{
-			if (str[index]!='.' && (str[index]<'0' || str[index]>'9'))
+			if (ip[index]!='.' && (ip[index]<'0' || ip[index]>'9'))
 				break;
-			IPPart[index]=str[index];
+			IPPart[index]=ip[index];
 		}
 		IPPart[index]=0;
 		portPart[0]=0;
-		if (str[index] && str[index+1])
+		if (ip[index] && ip[index+1])
 		{
 			index++;
-			for (portIndex=0; portIndex<10 && str[index] && index < 22+10; index++, portIndex++)
+			for (portIndex=0; portIndex<10 && ip[index] && index < 22+10; index++, portIndex++)
 			{
-				if (str[index]<'0' || str[index]>'9')
+				if (ip[index]<'0' || ip[index]>'9')
 					break;
 
-				portPart[portIndex]=str[index];
+				portPart[portIndex]=ip[index];
 			}
 			portPart[portIndex]=0;
 		}
-
-
+		// END MPG
 
 
 

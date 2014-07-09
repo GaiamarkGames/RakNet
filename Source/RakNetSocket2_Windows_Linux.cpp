@@ -17,14 +17,16 @@
 
 #if !defined(WINDOWS_STORE_RT) && !defined(__native_client__)
 
-#if RAKNET_SUPPORT_IPV6==1
-
+// BEGIN MPG
 void PrepareAddrInfoHints2(addrinfo *hints)
 {
 	memset(hints, 0, sizeof (addrinfo)); // make sure the struct is empty
 	hints->ai_socktype = SOCK_DGRAM; // UDP sockets
 	hints->ai_flags = AI_PASSIVE;     // fill in my IP for me
 }
+// END MPG
+
+#if RAKNET_SUPPORT_IPV6==1
 
 void GetMyIP_Windows_Linux_IPV4And6( SystemAddress addresses[MAXIMUM_NUMBER_OF_INTERNAL_IDS] )
 {
@@ -69,30 +71,29 @@ void GetMyIP_Windows_Linux_IPV4And6( SystemAddress addresses[MAXIMUM_NUMBER_OF_I
 #endif
 void GetMyIP_Windows_Linux_IPV4( SystemAddress addresses[MAXIMUM_NUMBER_OF_INTERNAL_IDS] )
 {
-
-
-
+	// BEGIN MPG
 	int idx=0;
 	char ac[ 80 ];
 	int err = gethostname( ac, sizeof( ac ) );
-    (void) err;
 	RakAssert(err != -1);
 	
-	struct hostent *phe = gethostbyname( ac );
-
-	if ( phe == 0 )
+	struct addrinfo hints;
+	struct addrinfo *servinfo=0, *aip;  // will point to the results
+	PrepareAddrInfoHints2(&hints);
+	getaddrinfo(ac, "", &hints, &servinfo);
+	
+	for (idx=0, aip = servinfo; aip != NULL && idx < MAXIMUM_NUMBER_OF_INTERNAL_IDS; aip = aip->ai_next, idx++)
 	{
-		RakAssert(phe!=0);
-		return ;
-	}
-	for ( idx = 0; idx < MAXIMUM_NUMBER_OF_INTERNAL_IDS; ++idx )
-	{
-		if (phe->h_addr_list[ idx ] == 0)
-			break;
-
-		memcpy(&addresses[idx].address.addr4.sin_addr,phe->h_addr_list[ idx ],sizeof(struct in_addr));
+		if (aip->ai_family == AF_INET)
+		{
+			struct sockaddr_in *ipv4 = (struct sockaddr_in *)aip->ai_addr;
+			memcpy(&addresses[idx].address.addr4.sin_addr, &ipv4->sin_addr, sizeof(struct in_addr));
+		}
 	}
 	
+	freeaddrinfo(servinfo); // free the linked-list
+	// END MPG
+
 	while (idx < MAXIMUM_NUMBER_OF_INTERNAL_IDS)
 	{
 		addresses[idx]=UNASSIGNED_SYSTEM_ADDRESS;
